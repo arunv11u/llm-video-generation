@@ -18,7 +18,7 @@ import sys
 
 # Path where SkyReels V3 is cloned on the pod
 SKYREELS_DIR = os.environ.get("SKYREELS_DIR", "/workspace/SkyReels-V3")
-SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "Skywork/SkyReels-V3-A2V-19B")
+SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "/workspace/SkyReels-V3-A2V-19B")
 
 
 def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
@@ -49,6 +49,7 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
     print(f"[skyreels] running: {' '.join(cmd)}")
     env = os.environ.copy()
     env.pop("PYTHONHASHSEED", None)
+    env["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 
     before = time.time()
     result = subprocess.run(cmd, cwd=SKYREELS_DIR, env=env)
