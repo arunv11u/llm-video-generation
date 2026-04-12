@@ -25,24 +25,10 @@ def generate(transcript: str, out_path: str) -> float:
 
     tts = F5TTS()
 
-    # F5-TTS requires a reference audio file. Use the bundled example.
-    import importlib.resources as pkg_resources
-    import glob as _glob
-
-    # Try to find a bundled reference audio from the f5_tts package
-    ref_file = None
-    ref_text = None
-    try:
-        import f5_tts
-        pkg_dir = os.path.dirname(f5_tts.__file__)
-        candidates = _glob.glob(os.path.join(pkg_dir, "infer", "examples", "basic", "*.wav"))
-        if candidates:
-            ref_file = candidates[0]
-            # Use a generic short reference text that matches the bundled audio
-            ref_text = "Some call me nature, others call me mother nature."
-            print(f"[tts] using bundled reference: {ref_file}")
-    except Exception:
-        pass
+    # F5-TTS requires a reference audio file. Use the known bundled example path.
+    ref_file = "/usr/local/lib/python3.12/dist-packages/f5_tts/infer/examples/basic/basic_ref_en.wav"
+    ref_text = "Some call me nature, others call me mother nature."
+    print(f"[tts] using reference: {ref_file}")
 
     wav, sr, _ = tts.infer(
         ref_file=ref_file,
