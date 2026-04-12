@@ -135,6 +135,27 @@ cd /workspace/ComfyUI && python main.py --listen 0.0.0.0 --port 8188
 
 ---
 
+## Clearing disk space
+
+```bash
+# Delete all generated reels
+rm -f /workspace/LLM-Video/outputs/*.mp4
+
+# Delete all candidate portraits
+rm -f /workspace/LLM-Video/outputs/candidates/*.png
+
+# Delete everything in outputs at once
+rm -rf /workspace/LLM-Video/outputs/*
+
+# Check overall disk usage
+df -h /workspace
+
+# See what's taking the most space
+du -sh /workspace/* | sort -rh | head -10
+```
+
+---
+
 ## Notes
 
 - **Stop** the pod (not Terminate) to pause billing — all files in `/workspace` are preserved
