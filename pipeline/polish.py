@@ -71,41 +71,60 @@ def polish(video: str, music: str, transcript: str, out_path: str) -> None:
     video_duration = _get_duration(video)
     caption_filter = _build_caption_filter(transcript, video_duration)
 
-    # Build ffmpeg filter chain
-    # - amix: trim music to video duration, fade out last 0.5s
-    audio_filter = (
-        f"[1:a]atrim=0:{video_duration:.2f},"
-        f"afade=t=out:st={max(0, video_duration - 0.5):.2f}:d=0.5[aout]"
-    )
-
-    if caption_filter:
-        # Combine audio + video filters in one filter_complex to avoid -vf/-filter_complex conflict
-        combined = f"[0:v]{caption_filter}[vout];{audio_filter}"
-        cmd = [
-            "ffmpeg", "-y",
-            "-i", video,
-            "-i", music,
-            "-filter_complex", combined,
-            "-map", "[vout]",
-            "-map", "[aout]",
-            "-c:v", "libx264", "-crf", "18", "-preset", "fast",
-            "-c:a", "aac", "-b:a", "192k",
-            "-movflags", "+faststart",
-            out_path,
-        ]
+    if music:
+        # Build ffmpeg filter chain with music
+        audio_filter = (
+            f"[1:a]atrim=0:{video_duration:.2f},"
+            f"afade=t=out:st={max(0, video_duration - 0.5):.2f}:d=0.5[aout]"
+        )
+        if caption_filter:
+            combined = f"[0:v]{caption_filter}[vout];{audio_filter}"
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", video,
+                "-i", music,
+                "-filter_complex", combined,
+                "-map", "[vout]",
+                "-map", "[aout]",
+                "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+                "-c:a", "aac", "-b:a", "192k",
+                "-movflags", "+faststart",
+                out_path,
+            ]
+        else:
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", video,
+                "-i", music,
+                "-filter_complex", audio_filter,
+                "-map", "0:v",
+                "-map", "[aout]",
+                "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+                "-c:a", "aac", "-b:a", "192k",
+                "-movflags", "+faststart",
+                out_path,
+            ]
     else:
-        cmd = [
-            "ffmpeg", "-y",
-            "-i", video,
-            "-i", music,
-            "-filter_complex", audio_filter,
-            "-map", "0:v",
-            "-map", "[aout]",
-            "-c:v", "libx264", "-crf", "18", "-preset", "fast",
-            "-c:a", "aac", "-b:a", "192k",
-            "-movflags", "+faststart",
-            out_path,
-        ]
+        # No music — just burn captions, keep original audio if any
+        if caption_filter:
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", video,
+                "-vf", caption_filter,
+                "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+                "-c:a", "copy",
+                "-movflags", "+faststart",
+                out_path,
+            ]
+        else:
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", video,
+                "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+                "-c:a", "copy",
+                "-movflags", "+faststart",
+                out_path,
+            ]
 
     print(f"[polish] exporting {out_path}")
     result = subprocess.run(cmd)
