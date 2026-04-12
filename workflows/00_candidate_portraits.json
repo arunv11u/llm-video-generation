@@ -2,7 +2,7 @@
   "4": {
     "class_type": "CheckpointLoaderSimple",
     "inputs": {
-      "ckpt_name": "flux1-schnell.safetensors"
+      "ckpt_name": "flux1-schnell-fp8.safetensors"
     }
   },
   "5": {
