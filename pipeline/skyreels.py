@@ -24,7 +24,13 @@ SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "Skywork/SkyReels-V3-A2V-19B")
 def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
     """
     Run SkyReels V3 A2V to produce a talking-head video.
+    SkyReels saves output to result/talking_avatar/<seed>_<ts>.mp4 inside SKYREELS_DIR.
+    We find the newest file there and move it to out_path.
     """
+    import glob
+    import shutil
+    import time
+
     script = os.path.join(SKYREELS_DIR, "generate_video.py")
     if not os.path.exists(script):
         print(f"ERROR: SkyReels not found at {SKYREELS_DIR}", file=sys.stderr)
@@ -35,21 +41,32 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
         sys.executable, script,
         "--task_type", "talking_avatar",
         "--model_id", SKYREELS_MODEL,
-        "--image", portrait,
-        "--audio", audio,
+        "--input_image", portrait,
+        "--input_audio", audio,
         "--prompt", prompt,
-        "--output_path", out_path,
     ]
 
     print(f"[skyreels] running: {' '.join(cmd)}")
     env = os.environ.copy()
     env.pop("PYTHONHASHSEED", None)
+
+    before = time.time()
     result = subprocess.run(cmd, cwd=SKYREELS_DIR, env=env)
 
     if result.returncode != 0:
         print("ERROR: SkyReels V3 generation failed.", file=sys.stderr)
         sys.exit(1)
 
+    # Find the newest MP4 produced in result/talking_avatar/
+    out_dir = os.path.join(SKYREELS_DIR, "result", "talking_avatar")
+    candidates = glob.glob(os.path.join(out_dir, "*.mp4"))
+    if not candidates:
+        print("ERROR: SkyReels produced no output file.", file=sys.stderr)
+        sys.exit(1)
+
+    newest = max(candidates, key=os.path.getmtime)
+    os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
+    shutil.move(newest, out_path)
     print(f"[skyreels] saved {out_path}")
 
 
