@@ -1,0 +1,8 @@
+outputs/
+character/reference.png
+*.mp4
+*.wav
+*.png
+__pycache__/
+*.pyc
+.env

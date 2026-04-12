@@ -1,0 +1,4 @@
+# Client-side dependencies (install on your local machine)
+# Pod-side dependencies are installed via docs/runpod_setup.md
+
+gradio>=4.0.0
