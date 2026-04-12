@@ -23,6 +23,7 @@ import time
 # Path where SkyReels V3 is cloned on the pod
 SKYREELS_DIR = os.environ.get("SKYREELS_DIR", "/workspace/SkyReels-V3")
 SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "/workspace/SkyReels-V3-A2V-19B")
+SKYREELS_R2V_MODEL = os.environ.get("SKYREELS_R2V_MODEL", "/workspace/SkyReels-V3-R2V-14B")
 
 
 def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
@@ -52,8 +53,8 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
         cmd = [
             sys.executable, script,
             "--task_type", task_type,
-            "--model_id", SKYREELS_MODEL,
-            "--ref_imgs", portrait,   # R2V uses --ref_imgs, not --input_image
+            "--model_id", SKYREELS_R2V_MODEL,  # R2V needs its own model weights
+            "--ref_imgs", portrait,             # R2V uses --ref_imgs, not --input_image
             "--prompt", prompt,
         ]
         out_subdir = "reference_to_video"
