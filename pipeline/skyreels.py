@@ -42,7 +42,9 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
     ]
 
     print(f"[skyreels] running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=SKYREELS_DIR)
+    env = os.environ.copy()
+    env.pop("PYTHONHASHSEED", None)
+    result = subprocess.run(cmd, cwd=SKYREELS_DIR, env=env)
 
     if result.returncode != 0:
         print("ERROR: SkyReels V3 generation failed.", file=sys.stderr)
