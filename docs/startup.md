@@ -5,7 +5,7 @@
 ### Step 1 — Install dependencies (required after every restart)
 
 ```bash
-pip install gradio f5-tts soundfile imageio imageio-ffmpeg wget easydict diffusers==0.34.0 transformers==4.44.2 accelerate==1.8.1 moviepy==2.2.1 omegaconf pyloudnorm librosa kornia ftfy torchao==0.10.0 opencv-python av sqlalchemy && grep -v "flash_attn" /workspace/SkyReels-V3/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5
+pip install gradio elevenlabs imageio imageio-ffmpeg wget easydict diffusers==0.34.0 transformers==4.44.2 accelerate==1.8.1 moviepy==2.2.1 omegaconf pyloudnorm librosa kornia ftfy torchao==0.10.0 opencv-python av sqlalchemy && grep -v "flash_attn" /workspace/SkyReels-V3/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5
 ```
 
 ### Step 2 — Verify the SkyReels attention patch is in place
@@ -81,7 +81,16 @@ else:
 EOF
 ```
 
-### Step 3 — Start the app
+### Step 3 — Set ElevenLabs API key
+
+```bash
+export ELEVENLABS_API_KEY=your_api_key_here
+```
+
+> Get your API key from: elevenlabs.io → Developers → API Keys
+> Get female voice IDs from: elevenlabs.io/voice-library
+
+### Step 4 — Start the app
 
 ```bash
 cd /workspace/LLM-Video && python app.py

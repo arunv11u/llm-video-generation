@@ -1,11 +1,5 @@
 """
 app.py — Gradio UI for the reel generator
-Runs on the pod. Access via RunPod proxy URL.
-
-Start:
-    python app.py
-
-Then open the URL shown in the terminal (e.g. https://<pod-id>-7860.proxy.runpod.net)
 """
 
 import os
@@ -24,16 +18,35 @@ REFERENCE_PNG = os.path.join(CHARACTER_DIR, "reference.png")
 
 # ── Reel tab ──────────────────────────────────────────────────────────────────
 
-def generate_reel(transcript: str, music_path: str, prompt: str):
-    if not transcript.strip():
-        return None, "Please enter a transcript."
-    if not music_path:
-        music_path = None
+def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str):
+    transcript = transcript.strip() if transcript else ""
+    music_path = music_path if music_path else None
+    prompt = prompt.strip() if prompt else ""
+    voice_id = voice_id.strip() if voice_id else ""
+
+    has_transcript = bool(transcript)
+    has_music = bool(music_path)
+
+    if not has_transcript and not has_music:
+        return None, "Please enter a transcript or upload background music."
+
     if not os.path.exists(REFERENCE_PNG):
         return None, "No reference portrait found. Go to the 'Pick a Face' tab first."
 
+    # Set voice ID for this request
+    if voice_id:
+        os.environ["ELEVENLABS_VOICE_ID"] = voice_id
+
+    # Determine audio mode
+    if has_transcript and has_music:
+        audio_mode = "lipsync_only" if audio_mode_choice == "Lip sync only (music plays)" else "voice_and_music"
+    elif has_transcript:
+        audio_mode = "tts_only"
+    else:
+        audio_mode = "music_only"
+
     try:
-        out = run_reel(transcript.strip(), music_path, prompt.strip())
+        out = run_reel(transcript, music_path, prompt, audio_mode)
         return out, f"Done! Saved to {out}"
     except SystemExit:
         return None, "Pipeline failed. Check the pod terminal for details."
@@ -54,7 +67,7 @@ def generate_candidates(prompt: str, count: int):
 
 
 def set_reference(gallery, evt: gr.SelectData):
-    selected = gallery[evt.index][0]  # tuple is (filepath, caption)
+    selected = gallery[evt.index][0]
     os.makedirs(CHARACTER_DIR, exist_ok=True)
     import shutil
     shutil.copy(selected, REFERENCE_PNG)
@@ -76,17 +89,17 @@ with gr.Blocks(title="Reel Generator") as demo:
     gr.Markdown("# Reel Generator\nGenerate Instagram-ready reels of your AI virtual influencer.")
 
     with gr.Tab("Generate Reel"):
-        gr.Markdown("Paste your transcript, upload background music, and hit Generate.")
+        gr.Markdown("Paste your transcript and/or upload background music, then hit Generate.")
 
         with gr.Row():
             with gr.Column():
                 transcript_box = gr.Textbox(
-                    label="Transcript",
+                    label="Transcript (optional)",
                     placeholder="Hey guys, welcome back to my channel. Today I am in Paris...",
                     lines=4,
                 )
                 music_upload = gr.Audio(
-                    label="Background Music",
+                    label="Background Music (optional)",
                     type="filepath",
                     sources=["upload"],
                 )
@@ -94,6 +107,17 @@ with gr.Blocks(title="Reel Generator") as demo:
                     label="Scene / Mood Prompt",
                     value="glamorous selfie vlog, golden hour, confident expression",
                     lines=2,
+                )
+                audio_mode_radio = gr.Radio(
+                    choices=["Voice + Music (speak over music)", "Lip sync only (music plays)"],
+                    value="Voice + Music (speak over music)",
+                    label="Audio mode (only applies when both transcript and music are provided)",
+                )
+                voice_id_box = gr.Textbox(
+                    label="ElevenLabs Voice ID",
+                    value="EXAVITQu4vr4xnSDxMaL",
+                    placeholder="e.g. EXAVITQu4vr4xnSDxMaL",
+                    info="Find voice IDs at elevenlabs.io/voice-library. Leave default for Sarah (American female).",
                 )
                 generate_btn = gr.Button("Generate Reel", variant="primary")
 
@@ -103,7 +127,7 @@ with gr.Blocks(title="Reel Generator") as demo:
 
         generate_btn.click(
             fn=generate_reel,
-            inputs=[transcript_box, music_upload, prompt_box],
+            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box],
             outputs=[video_out, status_out],
         )
 
