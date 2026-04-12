@@ -59,6 +59,7 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: in
             "--ref_imgs", portrait,             # R2V uses --ref_imgs, not --input_image
             "--prompt", prompt,
             "--duration", str(dur),
+            "--low_vram",                       # block offloading to handle longer durations
         ]
         out_subdir = "reference_to_video"
 
