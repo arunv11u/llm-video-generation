@@ -23,7 +23,7 @@ PORTRAIT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 OUTPUTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
 
 
-def run(transcript: str, music: str, prompt: str, audio_mode: str = None) -> str:
+def run(transcript: str, music: str, prompt: str, audio_mode: str = None, duration: int = None) -> str:
     """
     Run the full reel pipeline. Returns path to the final MP4.
 
@@ -75,7 +75,7 @@ def run(transcript: str, music: str, prompt: str, audio_mode: str = None) -> str
         skyreels_generate(PORTRAIT, tts_path, prompt.strip(), raw_path)
     else:
         # Use reference_to_video mode (natural movement, no speech)
-        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path)
+        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration)
 
     # Step 3: Polish
     print(f"\n=== Step 3/3: Polish ===")
@@ -106,6 +106,8 @@ if __name__ == "__main__":
     parser.add_argument("--audio_mode", default=None,
                         choices=["tts_only", "music_only", "voice_and_music", "lipsync_only"],
                         help="Override audio mode (auto-detected if omitted)")
+    parser.add_argument("--duration", default=None, type=int,
+                        help="Video duration in seconds 5-30 (only for music-only/dance mode)")
     args = parser.parse_args()
 
-    run(args.transcript, args.music, args.prompt, args.audio_mode)
+    run(args.transcript, args.music, args.prompt, args.audio_mode, args.duration)

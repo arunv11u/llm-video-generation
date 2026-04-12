@@ -18,7 +18,7 @@ REFERENCE_PNG = os.path.join(CHARACTER_DIR, "reference.png")
 
 # ── Reel tab ──────────────────────────────────────────────────────────────────
 
-def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str):
+def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str, duration: int = 15):
     transcript = transcript.strip() if transcript else ""
     music_path = music_path if music_path else None
     prompt = prompt.strip() if prompt else ""
@@ -46,7 +46,7 @@ def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choi
         audio_mode = "music_only"
 
     try:
-        out = run_reel(transcript, music_path, prompt, audio_mode)
+        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None)
         return out, f"Done! Saved to {out}"
     except SystemExit:
         return None, "Pipeline failed. Check the pod terminal for details."
@@ -119,6 +119,11 @@ with gr.Blocks(title="Reel Generator") as demo:
                     placeholder="e.g. EXAVITQu4vr4xnSDxMaL",
                     info="Find voice IDs at elevenlabs.io/voice-library. Leave default for Sarah (American female).",
                 )
+                duration_slider = gr.Slider(
+                    minimum=5, maximum=30, step=5, value=15,
+                    label="Video Duration (seconds)",
+                    info="Only applies to music-only / dance reels (no transcript). Talking reels use TTS audio length.",
+                )
                 generate_btn = gr.Button("Generate Reel", variant="primary")
 
             with gr.Column():
@@ -127,7 +132,7 @@ with gr.Blocks(title="Reel Generator") as demo:
 
         generate_btn.click(
             fn=generate_reel,
-            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box],
+            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box, duration_slider],
             outputs=[video_out, status_out],
         )
 

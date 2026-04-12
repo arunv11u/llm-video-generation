@@ -26,11 +26,12 @@ SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "/workspace/SkyReels-V3-A2V-19
 SKYREELS_R2V_MODEL = os.environ.get("SKYREELS_R2V_MODEL", "/workspace/SkyReels-V3-R2V-14B")
 
 
-def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
+def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: int = None) -> None:
     """
     Run SkyReels V3 to produce a video.
-    - If audio is provided: uses talking_avatar mode (lip sync)
-    - If audio is None: uses reference_to_video mode (natural movement, no speech)
+    - If audio is provided: uses talking_avatar mode (lip sync); duration set by audio length
+    - If audio is None: uses reference_to_video mode (natural movement); duration defaults to 15s
+    duration: video length in seconds (5-30). Only applies to reference_to_video mode.
     """
     script = os.path.join(SKYREELS_DIR, "generate_video.py")
     if not os.path.exists(script):
@@ -50,12 +51,14 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
         out_subdir = "talking_avatar"
     else:
         task_type = "reference_to_video"
+        dur = duration if duration else 15  # default 15s for dance/music reels
         cmd = [
             sys.executable, script,
             "--task_type", task_type,
             "--model_id", SKYREELS_R2V_MODEL,  # R2V needs its own model weights
             "--ref_imgs", portrait,             # R2V uses --ref_imgs, not --input_image
             "--prompt", prompt,
+            "--duration", str(dur),
         ]
         out_subdir = "reference_to_video"
 
