@@ -90,6 +90,15 @@ export ELEVENLABS_API_KEY=your_api_key_here
 > Get your API key from: elevenlabs.io → Developers → API Keys
 > Get female voice IDs from: elevenlabs.io/voice-library
 
+### Step 3b — Set R2V model path (for music-only / dance reels)
+
+```bash
+export SKYREELS_R2V_MODEL=/workspace/SkyReels-V3-R2V-14B
+```
+
+> Required when generating reels with music only (no transcript).
+> R2V model must be downloaded first — see runpod_setup.md if not yet done.
+
 ### Step 4 — Start the app
 
 ```bash
@@ -132,6 +141,7 @@ cd /workspace/ComfyUI && python main.py --listen 0.0.0.0 --port 8188
 - **Terminate** deletes everything permanently
 - Outputs are saved to `/workspace/LLM-Video/outputs/`
 - Reference portrait is at `/workspace/LLM-Video/character/reference.png`
-- SkyReels model is at `/workspace/SkyReels-V3-A2V-19B/` (53GB — do not delete)
+- SkyReels A2V model is at `/workspace/SkyReels-V3-A2V-19B/` (53GB — do not delete)
+- SkyReels R2V model is at `/workspace/SkyReels-V3-R2V-14B/` (53GB — do not delete, needed for dance/music-only reels)
 - Flux model is at `/workspace/ComfyUI/models/checkpoints/flux1-schnell-fp8.safetensors` (17GB)
 - The SkyReels attention patch persists in `/workspace` across restarts — only pip packages are lost
