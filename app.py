@@ -28,7 +28,7 @@ def generate_reel(transcript: str, music_path: str, prompt: str):
     if not transcript.strip():
         return None, "Please enter a transcript."
     if not music_path:
-        return None, "Please upload a background music file."
+        music_path = None
     if not os.path.exists(REFERENCE_PNG):
         return None, "No reference portrait found. Go to the 'Pick a Face' tab first."
 

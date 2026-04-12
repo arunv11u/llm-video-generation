@@ -36,7 +36,7 @@ def run(transcript: str, music: str, prompt: str) -> str:
         print("Run M0 first: python pipeline/pick_portrait.py", file=sys.stderr)
         sys.exit(1)
 
-    if not os.path.exists(music):
+    if music and not os.path.exists(music):
         print(f"ERROR: music file not found: {music}", file=sys.stderr)
         sys.exit(1)
 
