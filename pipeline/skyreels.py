@@ -53,7 +53,7 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str) -> None:
             sys.executable, script,
             "--task_type", task_type,
             "--model_id", SKYREELS_MODEL,
-            "--input_image", portrait,
+            "--ref_imgs", portrait,   # R2V uses --ref_imgs, not --input_image
             "--prompt", prompt,
         ]
         out_subdir = "reference_to_video"
