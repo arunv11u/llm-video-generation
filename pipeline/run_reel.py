@@ -23,7 +23,7 @@ PORTRAIT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 OUTPUTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
 
 
-def run(transcript: str, music: str, prompt: str, audio_mode: str = None, duration: int = None) -> str:
+def run(transcript: str, music: str, prompt: str, audio_mode: str = None, duration: int = None, low_vram: bool = False) -> str:
     """
     Run the full reel pipeline. Returns path to the final MP4.
 
@@ -75,7 +75,7 @@ def run(transcript: str, music: str, prompt: str, audio_mode: str = None, durati
         skyreels_generate(PORTRAIT, tts_path, prompt.strip(), raw_path)
     else:
         # Use reference_to_video mode (natural movement, no speech)
-        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration)
+        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration, low_vram=low_vram)
 
     # Step 3: Polish
     print(f"\n=== Step 3/3: Polish ===")

@@ -26,12 +26,13 @@ SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "/workspace/SkyReels-V3-A2V-19
 SKYREELS_R2V_MODEL = os.environ.get("SKYREELS_R2V_MODEL", "/workspace/SkyReels-V3-R2V-14B")
 
 
-def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: int = None) -> None:
+def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: int = None, low_vram: bool = False) -> None:
     """
     Run SkyReels V3 to produce a video.
     - If audio is provided: uses talking_avatar mode (lip sync); duration set by audio length
     - If audio is None: uses reference_to_video mode (natural movement); duration defaults to 15s
     duration: video length in seconds (5-30). Only applies to reference_to_video mode.
+    low_vram: enable block offloading to reduce VRAM usage (slower but handles 20-30s clips).
     """
     script = os.path.join(SKYREELS_DIR, "generate_video.py")
     if not os.path.exists(script):
@@ -59,8 +60,9 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: in
             "--ref_imgs", portrait,             # R2V uses --ref_imgs, not --input_image
             "--prompt", prompt,
             "--duration", str(dur),
-            "--low_vram",                       # block offloading to handle longer durations
         ]
+        if low_vram:
+            cmd.append("--low_vram")
         out_subdir = "reference_to_video"
 
     print(f"[skyreels] mode: {task_type}")

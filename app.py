@@ -18,7 +18,7 @@ REFERENCE_PNG = os.path.join(CHARACTER_DIR, "reference.png")
 
 # ── Reel tab ──────────────────────────────────────────────────────────────────
 
-def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str, duration: int = 15):
+def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str, duration: int = 15, low_vram: bool = False):
     transcript = transcript.strip() if transcript else ""
     music_path = music_path if music_path else None
     prompt = prompt.strip() if prompt else ""
@@ -46,7 +46,7 @@ def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choi
         audio_mode = "music_only"
 
     try:
-        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None)
+        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None, low_vram=low_vram)
         return out, f"Done! Saved to {out}"
     except SystemExit:
         return None, "Pipeline failed. Check the pod terminal for details."
@@ -124,6 +124,11 @@ with gr.Blocks(title="Reel Generator") as demo:
                     label="Video Duration (seconds)",
                     info="Only applies to music-only / dance reels (no transcript). Talking reels use TTS audio length.",
                 )
+                low_vram_checkbox = gr.Checkbox(
+                    label="Low VRAM mode",
+                    value=False,
+                    info="Enable for 20-30s videos. Slower but prevents out-of-memory errors.",
+                )
                 generate_btn = gr.Button("Generate Reel", variant="primary")
 
             with gr.Column():
@@ -132,7 +137,7 @@ with gr.Blocks(title="Reel Generator") as demo:
 
         generate_btn.click(
             fn=generate_reel,
-            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box, duration_slider],
+            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box, duration_slider, low_vram_checkbox],
             outputs=[video_out, status_out],
         )
 
