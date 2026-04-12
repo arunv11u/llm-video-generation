@@ -61,6 +61,15 @@ def set_reference(gallery, evt: gr.SelectData):
     return f"Reference set to: {selected}"
 
 
+def upload_reference(image_path: str):
+    if not image_path:
+        return "No image uploaded."
+    os.makedirs(CHARACTER_DIR, exist_ok=True)
+    import shutil
+    shutil.copy(image_path, REFERENCE_PNG)
+    return f"Reference set from upload: {image_path}"
+
+
 # ── Build UI ──────────────────────────────────────────────────────────────────
 
 with gr.Blocks(title="Reel Generator") as demo:
@@ -99,23 +108,40 @@ with gr.Blocks(title="Reel Generator") as demo:
         )
 
     with gr.Tab("Pick a Face (M0)"):
-        gr.Markdown("Generate candidate portraits. Click one to set it as your influencer's reference face.")
+        gr.Markdown("Upload your own image **or** generate AI candidates. Either way, click to set as reference.")
 
         with gr.Row():
             with gr.Column():
+                gr.Markdown("### Upload your own photo")
+                upload_image = gr.Image(
+                    label="Upload Image",
+                    type="filepath",
+                    sources=["upload"],
+                )
+                upload_btn = gr.Button("Use This Image as Reference", variant="primary")
+                upload_status = gr.Textbox(label="Upload status", interactive=False)
+
+        with gr.Row():
+            with gr.Column():
+                gr.Markdown("### Or generate AI candidates")
                 face_prompt = gr.Textbox(
                     label="Describe the woman",
                     value="photorealistic portrait of a 25yo woman, warm skin, long dark hair, glamorous vlog aesthetic, soft studio lighting, shoulders up, close-up",
                     lines=3,
                 )
                 face_count = gr.Slider(minimum=1, maximum=12, value=4, step=1, label="Number of candidates")
-                face_btn = gr.Button("Generate Candidates", variant="primary")
+                face_btn = gr.Button("Generate Candidates", variant="secondary")
                 face_status = gr.Textbox(label="Status", interactive=False)
 
             with gr.Column():
                 face_gallery = gr.Gallery(label="Candidates — click one to set as reference", columns=2)
                 reference_status = gr.Textbox(label="Reference status", interactive=False)
 
+        upload_btn.click(
+            fn=upload_reference,
+            inputs=[upload_image],
+            outputs=[upload_status],
+        )
         face_btn.click(
             fn=generate_candidates,
             inputs=[face_prompt, face_count],
