@@ -23,7 +23,7 @@ PORTRAIT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 OUTPUTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
 
 
-def run(transcript: str, music: str, prompt: str, audio_mode: str = None, duration: int = None, low_vram: bool = False) -> str:
+def run(transcript: str, music: str, prompt: str, audio_mode: str = None, duration: int = None, vram_mode: str = "none") -> str:
     """
     Run the full reel pipeline. Returns path to the final MP4.
 
@@ -75,7 +75,7 @@ def run(transcript: str, music: str, prompt: str, audio_mode: str = None, durati
         skyreels_generate(PORTRAIT, tts_path, prompt.strip(), raw_path)
     else:
         # Use reference_to_video mode (natural movement, no speech)
-        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration, low_vram=low_vram)
+        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration, vram_mode=vram_mode)
 
     # Step 3: Polish
     print(f"\n=== Step 3/3: Polish ===")
@@ -108,6 +108,9 @@ if __name__ == "__main__":
                         help="Override audio mode (auto-detected if omitted)")
     parser.add_argument("--duration", default=None, type=int,
                         help="Video duration in seconds 5-30 (only for music-only/dance mode)")
+    parser.add_argument("--vram_mode", default="none",
+                        choices=["none", "offload", "low_vram"],
+                        help="Memory mode: none (default) | offload (fixes OOM) | low_vram (extreme cases)")
     args = parser.parse_args()
 
-    run(args.transcript, args.music, args.prompt, args.audio_mode, args.duration)
+    run(args.transcript, args.music, args.prompt, args.audio_mode, args.duration, args.vram_mode)

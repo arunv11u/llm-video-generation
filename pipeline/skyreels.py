@@ -26,13 +26,16 @@ SKYREELS_MODEL = os.environ.get("SKYREELS_MODEL", "/workspace/SkyReels-V3-A2V-19
 SKYREELS_R2V_MODEL = os.environ.get("SKYREELS_R2V_MODEL", "/workspace/SkyReels-V3-R2V-14B")
 
 
-def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: int = None, low_vram: bool = False) -> None:
+def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: int = None, vram_mode: str = "none") -> None:
     """
     Run SkyReels V3 to produce a video.
     - If audio is provided: uses talking_avatar mode (lip sync); duration set by audio length
     - If audio is None: uses reference_to_video mode (natural movement); duration defaults to 15s
     duration: video length in seconds (5-30). Only applies to reference_to_video mode.
-    low_vram: enable block offloading to reduce VRAM usage (slower but handles 20-30s clips).
+    vram_mode: memory optimization mode — "none" (default), "offload", or "low_vram"
+      - "none"     → no flags, fastest, full quality, use for <=10s clips
+      - "offload"  → --offload, moves VAE/T5 to CPU, ~20% slower, no quality loss, fixes OOM
+      - "low_vram" → --low_vram, block offloading, very slow, handles extreme cases
     """
     script = os.path.join(SKYREELS_DIR, "generate_video.py")
     if not os.path.exists(script):
@@ -61,8 +64,10 @@ def generate(portrait: str, audio: str, prompt: str, out_path: str, duration: in
             "--prompt", prompt,
             "--duration", str(dur),
         ]
-        if low_vram:
-            cmd.append("--low_vram")
+        if vram_mode == "offload":
+            cmd.append("--offload")    # moves VAE/T5/image encoder to CPU, transformer stays on GPU
+        elif vram_mode == "low_vram":
+            cmd.append("--low_vram")   # block offloading, very slow but lowest VRAM
         out_subdir = "reference_to_video"
 
     print(f"[skyreels] mode: {task_type}")

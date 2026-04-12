@@ -18,7 +18,7 @@ REFERENCE_PNG = os.path.join(CHARACTER_DIR, "reference.png")
 
 # ── Reel tab ──────────────────────────────────────────────────────────────────
 
-def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str, duration: int = 15, low_vram: bool = False):
+def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choice: str, voice_id: str, duration: int = 15, vram_mode: str = "None"):
     transcript = transcript.strip() if transcript else ""
     music_path = music_path if music_path else None
     prompt = prompt.strip() if prompt else ""
@@ -46,7 +46,7 @@ def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choi
         audio_mode = "music_only"
 
     try:
-        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None, low_vram=low_vram)
+        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None, vram_mode=vram_mode.lower())
         return out, f"Done! Saved to {out}"
     except SystemExit:
         return None, "Pipeline failed. Check the pod terminal for details."
@@ -124,10 +124,11 @@ with gr.Blocks(title="Reel Generator") as demo:
                     label="Video Duration (seconds)",
                     info="Only applies to music-only / dance reels (no transcript). Talking reels use TTS audio length.",
                 )
-                low_vram_checkbox = gr.Checkbox(
-                    label="Low VRAM mode",
-                    value=False,
-                    info="Enable for 20-30s videos. Slower but prevents out-of-memory errors.",
+                vram_mode_radio = gr.Radio(
+                    choices=["None", "Offload", "Low VRAM"],
+                    value="None",
+                    label="Memory Mode (dance/music-only reels)",
+                    info="None: fastest, use for ≤10s  |  Offload: fixes OOM, ~20% slower, no quality loss  |  Low VRAM: slowest, extreme cases only",
                 )
                 generate_btn = gr.Button("Generate Reel", variant="primary")
 
@@ -137,7 +138,7 @@ with gr.Blocks(title="Reel Generator") as demo:
 
         generate_btn.click(
             fn=generate_reel,
-            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box, duration_slider, low_vram_checkbox],
+            inputs=[transcript_box, music_upload, prompt_box, audio_mode_radio, voice_id_box, duration_slider, vram_mode_radio],
             outputs=[video_out, status_out],
         )
 
