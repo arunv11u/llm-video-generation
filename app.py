@@ -46,7 +46,7 @@ def generate_reel(transcript: str, music_path: str, prompt: str, audio_mode_choi
         audio_mode = "music_only"
 
     try:
-        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None, vram_mode=vram_mode.lower())
+        out = run_reel(transcript, music_path, prompt, audio_mode, duration=duration if not has_transcript else None, vram_mode=vram_mode.lower().replace(" ", "_"))
         return out, f"Done! Saved to {out}"
     except SystemExit:
         return None, "Pipeline failed. Check the pod terminal for details."
