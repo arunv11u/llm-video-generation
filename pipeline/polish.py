@@ -127,6 +127,21 @@ def polish(video: str, tts: str, music: str, transcript: str, audio_mode: str, o
                    "-map", "0:v", "-map", "[aout]",
                    "-c:v", "libx264", "-crf", "18", "-preset", "fast",
                    "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out_path]
+    elif audio_mode == "keep_audio":
+        # Keep original video audio, burn captions only (used by face-swap + transcript)
+        if caption_filter:
+            fc = f"[0:v]{caption_filter}[vout]"
+            cmd = ["ffmpeg", "-y", "-i", video,
+                   "-filter_complex", fc,
+                   "-map", "[vout]", "-map", "0:a", "-c:a", "copy",
+                   "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+                   "-movflags", "+faststart", out_path]
+        else:
+            import shutil
+            shutil.copy(video, out_path)
+            print(f"[polish] keep_audio: no captions, copied as-is → {out_path}")
+            return
+
     else:
         print(f"ERROR: unknown audio_mode '{audio_mode}'", file=sys.stderr)
         sys.exit(1)

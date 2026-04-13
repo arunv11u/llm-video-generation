@@ -142,6 +142,104 @@ with gr.Blocks(title="Reel Generator") as demo:
             outputs=[video_out, status_out],
         )
 
+    with gr.Tab("Video + Face"):
+        gr.Markdown(
+            "Upload a video and your character's face will be applied.\n\n"
+            "**Approximate:** AI recreates similar motion (prompt-guided, not frame-exact).\n\n"
+            "**Exact:** Swaps face directly onto the video (frame-exact, may have artifacts)."
+        )
+
+        with gr.Row():
+            with gr.Column():
+                vf_video = gr.Video(
+                    label="Reference Video",
+                    sources=["upload"],
+                )
+                vf_mode_radio = gr.Radio(
+                    choices=["Approximate (AI-generated)", "Exact (face swap)"],
+                    value="Approximate (AI-generated)",
+                    label="Mode",
+                )
+                vf_prompt_box = gr.Textbox(
+                    label="Scene / Mood Prompt (optional)",
+                    placeholder="glamorous selfie vlog, golden hour, confident expression",
+                    lines=2,
+                )
+                vf_transcript_box = gr.Textbox(
+                    label="Transcript (optional — for captions)",
+                    placeholder="Hey guys, welcome back...",
+                    lines=3,
+                )
+                vf_music_upload = gr.Audio(
+                    label="Background Music (optional)",
+                    type="filepath",
+                    sources=["upload"],
+                )
+                vf_voice_id_box = gr.Textbox(
+                    label="ElevenLabs Voice ID",
+                    value="EXAVITQu4vr4xnSDxMaL",
+                    info="Only used in Approximate mode with transcript (for lip-sync TTS).",
+                )
+                vf_vram_mode_radio = gr.Radio(
+                    choices=["None", "Offload", "Low VRAM"],
+                    value="None",
+                    label="Memory Mode (Approximate mode only)",
+                    info="None: fastest  |  Offload: fixes OOM  |  Low VRAM: slowest",
+                )
+                vf_generate_btn = gr.Button("Generate", variant="primary")
+
+            with gr.Column():
+                vf_video_out = gr.Video(label="Output")
+                vf_status_out = gr.Textbox(label="Status", interactive=False)
+
+        def generate_video_face(input_video, mode, prompt, transcript, music_path, voice_id, vram_mode):
+            if not input_video:
+                return None, "Please upload a reference video."
+            if not os.path.exists(REFERENCE_PNG):
+                return None, "No reference portrait found. Go to the 'Pick a Face' tab first."
+
+            transcript = transcript.strip() if transcript else ""
+            music_path = music_path if music_path else None
+            prompt = prompt.strip() if prompt else ""
+            has_transcript = bool(transcript)
+            has_music = bool(music_path)
+
+            video_face_mode = "approximate" if "Approximate" in mode else "exact"
+
+            # Set voice ID for approximate + transcript (TTS lip-sync)
+            if voice_id and voice_id.strip():
+                os.environ["ELEVENLABS_VOICE_ID"] = voice_id.strip()
+
+            # Determine audio mode
+            if has_transcript and has_music:
+                audio_mode = "lipsync_only" if video_face_mode == "exact" else "voice_and_music"
+            elif has_transcript:
+                audio_mode = "keep_audio" if video_face_mode == "exact" else "tts_only"
+            elif has_music:
+                audio_mode = "music_only"
+            else:
+                audio_mode = None
+
+            try:
+                out = run_reel(
+                    transcript, music_path, prompt, audio_mode,
+                    vram_mode=vram_mode.lower().replace(" ", "_"),
+                    input_video=input_video,
+                    video_face_mode=video_face_mode,
+                )
+                return out, f"Done! Saved to {out}"
+            except SystemExit:
+                return None, "Pipeline failed. Check the pod terminal for details."
+            except Exception as e:
+                return None, f"Error: {e}"
+
+        vf_generate_btn.click(
+            fn=generate_video_face,
+            inputs=[vf_video, vf_mode_radio, vf_prompt_box, vf_transcript_box,
+                    vf_music_upload, vf_voice_id_box, vf_vram_mode_radio],
+            outputs=[vf_video_out, vf_status_out],
+        )
+
     with gr.Tab("Pick a Face (M0)"):
         gr.Markdown("Upload your own image **or** generate AI candidates. Either way, click to set as reference.")
 

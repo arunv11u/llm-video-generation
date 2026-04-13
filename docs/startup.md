@@ -99,6 +99,15 @@ export SKYREELS_R2V_MODEL=/workspace/SkyReels-V3-R2V-14B
 > Required when generating reels with music only (no transcript).
 > R2V model must be downloaded first — see runpod_setup.md if not yet done.
 
+### Step 3c — Set OpenAI API key (for Video + Face → Approximate mode)
+
+```bash
+export OPENAI_API_KEY=your_openai_api_key_here
+```
+
+> Optional. Used by the "Video + Face" tab's Approximate mode to auto-describe input video motion.
+> If not set, Approximate mode still works but uses only your manual prompt (no auto-description).
+
 ### Step 4 — Start the app
 
 ```bash
@@ -153,6 +162,25 @@ df -h /workspace
 # See what's taking the most space
 du -sh /workspace/* | sort -rh | head -10
 ```
+
+---
+
+## Install Deep-Live-Cam (one-time, for Video + Face → Exact mode)
+
+```bash
+cd /workspace && git clone https://github.com/hacksider/Deep-Live-Cam.git
+cd Deep-Live-Cam && pip install -r requirements.txt
+```
+
+Download the required model (inswapper_128.onnx) into the `models/` directory:
+
+```bash
+mkdir -p /workspace/Deep-Live-Cam/models
+# Download inswapper_128.onnx from https://huggingface.co/hacksider/deep-live-cam/tree/main
+# Place it at /workspace/Deep-Live-Cam/models/inswapper_128.onnx
+```
+
+> Only needed if you want to use the "Exact (face swap)" option in the Video + Face tab.
 
 ---
 
