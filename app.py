@@ -13,8 +13,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pipeline.run_reel import run as run_reel
 from pipeline.pick_portrait import pick as pick_portraits
-from pipeline.polish import polish
-from pipeline.wan import generate as wan_generate
 
 CHARACTER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "character")
 REFERENCE_PNG = os.path.join(CHARACTER_DIR, "reference.png")
@@ -93,6 +91,9 @@ def upload_reference(image_path: str):
 def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str):
     if not image_path:
         return None, "Please upload a starting scene image."
+
+    from pipeline.wan import generate as wan_generate
+    from pipeline.polish import polish
 
     prompt = prompt.strip() if prompt else ""
     music_path = music_path if music_path else None
