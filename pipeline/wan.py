@@ -56,9 +56,9 @@ def generate(image: str, prompt: str, out_path: str,
     ]
 
     if vram_mode == "offload":
-        cmd.extend(["--offload_model", "True"])
+        cmd.extend(["--offload_model", "True", "--t5_cpu", "--convert_model_dtype"])
     elif vram_mode == "low_vram":
-        cmd.extend(["--offload_model", "True"])   # Wan uses --offload_model for both low-memory modes
+        cmd.extend(["--offload_model", "True", "--t5_cpu", "--convert_model_dtype"])
 
     print(f"[wan] running: {' '.join(cmd)}")
 
