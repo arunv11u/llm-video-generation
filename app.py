@@ -3,7 +3,9 @@ app.py — Gradio UI for the reel generator
 """
 
 import os
+import shutil
 import sys
+import time
 
 import gradio as gr
 
@@ -11,9 +13,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from pipeline.run_reel import run as run_reel
 from pipeline.pick_portrait import pick as pick_portraits
+from pipeline.polish import polish
+from pipeline.wan import generate as wan_generate
 
 CHARACTER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "character")
 REFERENCE_PNG = os.path.join(CHARACTER_DIR, "reference.png")
+OUTPUTS_DIR   = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs")
 
 
 # ── Reel tab ──────────────────────────────────────────────────────────────────
@@ -83,6 +88,39 @@ def upload_reference(image_path: str):
     return f"Reference set from upload: {image_path}"
 
 
+# ── Scene Video tab ───────────────────────────────────────────────────────────
+
+def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str):
+    if not image_path:
+        return None, "Please upload a starting scene image."
+
+    prompt = prompt.strip() if prompt else ""
+    music_path = music_path if music_path else None
+
+    ts = int(time.time())
+    raw_path = f"/tmp/sv_raw_{ts}.mp4"
+    out_path = os.path.join(OUTPUTS_DIR, f"scene_{ts}.mp4")
+    os.makedirs(OUTPUTS_DIR, exist_ok=True)
+
+    try:
+        wan_generate(image_path, prompt, raw_path,
+                     duration=duration, vram_mode=vram_mode.lower().replace(" ", "_"))
+
+        if music_path:
+            polish(video=raw_path, tts=None, music=music_path, transcript="",
+                   audio_mode="music_only", out_path=out_path)
+            if os.path.exists(raw_path):
+                os.remove(raw_path)
+        else:
+            shutil.move(raw_path, out_path)
+
+        return out_path, f"Done! Saved to {out_path}"
+    except SystemExit:
+        return None, "Pipeline failed. Check the pod terminal for details."
+    except Exception as e:
+        return None, f"Error: {e}"
+
+
 # ── Build UI ──────────────────────────────────────────────────────────────────
 
 with gr.Blocks(title="Reel Generator") as demo:
@@ -122,13 +160,13 @@ with gr.Blocks(title="Reel Generator") as demo:
                 duration_slider = gr.Slider(
                     minimum=5, maximum=30, step=5, value=15,
                     label="Video Duration (seconds)",
-                    info="Only applies to music-only / dance reels (no transcript). Talking reels use TTS audio length.",
+                    info="Only for music-only / dance reels. Long durations auto-chunk at full quality in None mode.",
                 )
                 vram_mode_radio = gr.Radio(
                     choices=["None", "Offload", "Low VRAM"],
                     value="None",
                     label="Memory Mode (dance/music-only reels)",
-                    info="None: fastest, use for ≤10s  |  Offload: fixes OOM, ~20% slower, no quality loss  |  Low VRAM: slowest, extreme cases only",
+                    info="None: best quality, auto-chunks long videos  |  Offload: single-pass, ~20% slower  |  Low VRAM: single-pass, slowest",
                 )
                 generate_btn = gr.Button("Generate Reel", variant="primary")
 
@@ -284,6 +322,52 @@ with gr.Blocks(title="Reel Generator") as demo:
             fn=set_reference,
             inputs=[face_gallery],
             outputs=[reference_status],
+        )
+
+
+    with gr.Tab("Scene Video (Wan I2V)"):
+        gr.Markdown(
+            "Upload a scene photo and describe the motion — Wan 2.2 animates it.\n\n"
+            "Great for full-body cinematic shots: walking, environment scenes, slow-motion action."
+        )
+
+        with gr.Row():
+            with gr.Column():
+                sv_image = gr.Image(
+                    label="Starting Scene Image",
+                    type="filepath",
+                    sources=["upload"],
+                )
+                sv_prompt = gr.Textbox(
+                    label="Motion Prompt",
+                    placeholder="woman steps out of luxury infinity pool, wet hair, confident walk, golden hour, cinematic slow motion",
+                    lines=3,
+                )
+                sv_music = gr.Audio(
+                    label="Background Music (optional)",
+                    type="filepath",
+                    sources=["upload"],
+                )
+                sv_duration = gr.Slider(
+                    minimum=5, maximum=30, step=5, value=15,
+                    label="Duration (seconds)",
+                )
+                sv_vram_mode = gr.Radio(
+                    choices=["None", "Offload", "Low VRAM"],
+                    value="None",
+                    label="Memory Mode",
+                    info="None: fastest, full quality  |  Offload: lower VRAM  |  Low VRAM: slowest",
+                )
+                sv_generate_btn = gr.Button("Generate Scene Video", variant="primary")
+
+            with gr.Column():
+                sv_video_out = gr.Video(label="Output")
+                sv_status_out = gr.Textbox(label="Status", interactive=False)
+
+        sv_generate_btn.click(
+            fn=generate_scene_video,
+            inputs=[sv_image, sv_prompt, sv_music, sv_duration, sv_vram_mode],
+            outputs=[sv_video_out, sv_status_out],
         )
 
 

@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pipeline.tts import generate as tts_generate
 from pipeline.skyreels import generate as skyreels_generate
 from pipeline.polish import polish
+from pipeline.chunked import generate_chunked_r2v
 from pipeline.describe_video import describe as describe_video
 from pipeline.face_swap import swap as face_swap
 
@@ -137,7 +138,12 @@ def run(transcript: str, music: str, prompt: str, audio_mode: str = None,
         skyreels_generate(PORTRAIT, tts_path, prompt.strip(), raw_path)
     else:
         # Use reference_to_video mode (natural movement, no speech)
-        skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration, vram_mode=vram_mode)
+        dur = duration if duration else 15
+        if dur > 5 and vram_mode == "none":
+            # Auto-chunk: generate at full quality in 5s pieces, stitch with crossfade
+            generate_chunked_r2v(PORTRAIT, prompt.strip(), dur, raw_path, vram_mode=vram_mode)
+        else:
+            skyreels_generate(PORTRAIT, None, prompt.strip(), raw_path, duration=duration, vram_mode=vram_mode)
 
     # Step 3: Polish (skip if no audio sources)
     if has_transcript or has_music:
