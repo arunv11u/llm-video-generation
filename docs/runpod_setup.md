@@ -71,6 +71,15 @@ python -c "
 from huggingface_hub import snapshot_download
 snapshot_download('Skywork/SkyReels-V3-A2V-19B', local_dir='/workspace/SkyReels-V3-A2V-19B')
 "
+
+# Wan 2.2 I2V (for Scene Video tab)
+cd /workspace
+git clone https://github.com/Wan-Video/Wan2.2.git
+cd Wan2.2
+pip install -r requirements.txt
+
+# Download Wan 2.2 I2V-A14B weights (~54GB — takes ~10-15 min)
+huggingface-cli download Wan-AI/Wan2.2-I2V-A14B --local-dir /workspace/Wan2.2-I2V-A14B
 ```
 
 ---
