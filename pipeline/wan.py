@@ -91,7 +91,7 @@ def generate(image: str, prompt: str, out_path: str,
 
 
 CHUNK_DURATION = 5   # seconds per chunk (safe limit for 80GB VRAM)
-CROSSFADE = 0.5      # seconds of crossfade overlap between chunks
+CROSSFADE = 1.0      # seconds of crossfade overlap between chunks
 
 
 def _get_duration(path: str) -> float:
@@ -164,9 +164,20 @@ def generate_chunked(
     prompts: list of prompts, one per chunk. If fewer than n_chunks, the last
              prompt repeats for remaining chunks.
     """
+    from pipeline.face_swap import swap as face_swap
+
+    # Check if Deep-Live-Cam is installed (same check face_swap.py does internally)
+    dlc_script = os.path.join(
+        os.environ.get("DEEP_LIVE_CAM_DIR", "/workspace/Deep-Live-Cam"), "run.py"
+    )
+    has_face_swap = os.path.exists(dlc_script)
+    if not has_face_swap:
+        print("[wan-chunked] Deep-Live-Cam not found — face correction skipped")
+
     ts = int(time.time())
     chunk_paths = []
     frame_paths = []
+    swap_paths = []
 
     n_chunks = math.ceil((total_duration - crossfade) / (chunk_duration - crossfade))
     n_chunks = max(n_chunks, 1)
@@ -187,6 +198,16 @@ def generate_chunked(
             generate(current_image, chunk_prompt, chunk_path,
                      duration=chunk_duration, vram_mode=vram_mode)
 
+            # Restore original face identity (chunks 1+ may drift from original)
+            if has_face_swap and i > 0:
+                swapped_path = f"/tmp/wan_chunk_{ts}_{i}_swapped.mp4"
+                swap_paths.append(swapped_path)
+                try:
+                    face_swap(chunk_path, image, swapped_path)
+                    shutil.move(swapped_path, chunk_path)
+                except SystemExit:
+                    print(f"[wan-chunked] face swap skipped for chunk {i+1} (face not detected)")
+
             if i < n_chunks - 1:
                 frame_path = f"/tmp/wan_chunk_{ts}_lastframe_{i}.png"
                 frame_paths.append(frame_path)
@@ -198,6 +219,6 @@ def generate_chunked(
         print(f"[wan-chunked] done → {out_path} ({total_duration}s)")
 
     finally:
-        for f in chunk_paths + frame_paths:
+        for f in chunk_paths + frame_paths + swap_paths:
             if os.path.exists(f):
                 os.remove(f)
