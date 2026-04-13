@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 WAN_DIR   = os.environ.get("WAN_DIR",   "/workspace/Wan2.2")
-WAN_MODEL = os.environ.get("WAN_MODEL", "/workspace/Wan2.2-I2V-14B")
+WAN_MODEL = os.environ.get("WAN_MODEL", "/workspace/Wan2.2-I2V-A14B")
 
 WAN_FPS = int(os.environ.get("WAN_FPS", "16"))          # frames per second Wan generates at
 WAN_SIZE = os.environ.get("WAN_SIZE", "832*480")         # width*height for 9:16 vertical
@@ -42,7 +42,7 @@ def generate(image: str, prompt: str, out_path: str,
 
     cmd = [
         sys.executable, script,
-        "--task",      "i2v-14B",
+        "--task",      "i2v-A14B",
         "--image",     image,
         "--prompt",    prompt,
         "--size",      WAN_SIZE,
@@ -52,9 +52,9 @@ def generate(image: str, prompt: str, out_path: str,
     ]
 
     if vram_mode == "offload":
-        cmd.append("--offload")
+        cmd.extend(["--offload_model", "True"])
     elif vram_mode == "low_vram":
-        cmd.append("--offload")   # Wan uses --offload for both low-memory modes
+        cmd.extend(["--offload_model", "True"])   # Wan uses --offload_model for both low-memory modes
 
     print(f"[wan] running: {' '.join(cmd)}")
 

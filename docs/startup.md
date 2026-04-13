@@ -112,7 +112,7 @@ export OPENAI_API_KEY=your_openai_api_key_here
 
 ```bash
 export WAN_DIR=/workspace/Wan2.2
-export WAN_MODEL=/workspace/Wan2.2-I2V-14B
+export WAN_MODEL=/workspace/Wan2.2-I2V-A14B
 ```
 
 > Required for the "Scene Video (Wan I2V)" tab. Wan must be downloaded first — see runpod_setup.md if not yet done.
@@ -203,4 +203,4 @@ mkdir -p /workspace/Deep-Live-Cam/models
 - SkyReels R2V model is at `/workspace/SkyReels-V3-R2V-14B/` (53GB — do not delete, needed for dance/music-only reels)
 - Flux model is at `/workspace/ComfyUI/models/checkpoints/flux1-schnell-fp8.safetensors` (17GB)
 - The SkyReels attention patch persists in `/workspace` across restarts — only pip packages are lost
-- Wan I2V model is at `/workspace/Wan2.2-I2V-14B/` (needed for Scene Video tab)
+- Wan I2V model is at `/workspace/Wan2.2-I2V-A14B/` (needed for Scene Video tab)
