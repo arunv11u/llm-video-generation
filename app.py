@@ -92,11 +92,12 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
     if not image_path:
         return None, "Please upload a starting scene image."
 
-    from pipeline.wan import generate as wan_generate
+    from pipeline.wan import generate as wan_generate, generate_chunked as wan_generate_chunked
     from pipeline.polish import polish
 
     prompt = prompt.strip() if prompt else ""
     music_path = music_path if music_path else None
+    vram = vram_mode.lower().replace(" ", "_")
 
     ts = int(time.time())
     raw_path = f"/tmp/sv_raw_{ts}.mp4"
@@ -104,8 +105,12 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
     os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
     try:
-        wan_generate(image_path, prompt, raw_path,
-                     duration=duration, vram_mode=vram_mode.lower().replace(" ", "_"))
+        if duration > 5:
+            wan_generate_chunked(image_path, prompt, raw_path,
+                                 total_duration=duration, vram_mode=vram)
+        else:
+            wan_generate(image_path, prompt, raw_path,
+                         duration=duration, vram_mode=vram)
 
         if music_path:
             polish(video=raw_path, tts=None, music=music_path, transcript="",
