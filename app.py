@@ -88,14 +88,13 @@ def upload_reference(image_path: str):
 
 # ── Scene Video tab ───────────────────────────────────────────────────────────
 
-def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str):
+def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str, model: str = "Wan 2.2"):
     if not image_path:
         return None, "Please upload a starting scene image."
 
-    from pipeline.wan import generate as wan_generate, generate_chunked as wan_generate_chunked
     from pipeline.polish import polish
 
-    # Parse prompts — one per line, one per 5s chunk
+    # Parse prompts — one per line, one per chunk
     prompts = [p.strip() for p in (prompt or "").split("\n") if p.strip()]
     if not prompts:
         return None, "Please enter at least one prompt."
@@ -108,12 +107,22 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
     os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
     try:
-        if duration > 5:
-            wan_generate_chunked(image_path, prompts, raw_path,
-                                 total_duration=duration, vram_mode=vram)
-        else:
-            wan_generate(image_path, prompts[0], raw_path,
-                         duration=duration, vram_mode=vram)
+        if model == "SkyReels V1":
+            from pipeline.skyreels_v1_i2v import generate as sr_generate, generate_chunked as sr_generate_chunked
+            if duration > 4 and vram == "none":
+                sr_generate_chunked(image_path, prompts, raw_path,
+                                    total_duration=duration, vram_mode=vram)
+            else:
+                sr_generate(image_path, prompts[0], raw_path,
+                            duration=duration, vram_mode=vram)
+        else:  # Wan 2.2 (default)
+            from pipeline.wan import generate as wan_generate, generate_chunked as wan_generate_chunked
+            if duration > 5 and vram == "none":
+                wan_generate_chunked(image_path, prompts, raw_path,
+                                     total_duration=duration, vram_mode=vram)
+            else:
+                wan_generate(image_path, prompts[0], raw_path,
+                             duration=duration, vram_mode=vram)
 
         if music_path:
             polish(video=raw_path, tts=None, music=music_path, transcript="",
@@ -334,10 +343,10 @@ with gr.Blocks(title="Reel Generator") as demo:
         )
 
 
-    with gr.Tab("Scene Video (Wan I2V)"):
+    with gr.Tab("Scene Video"):
         gr.Markdown(
-            "Upload a scene photo and describe the motion — Wan 2.2 animates it.\n\n"
-            "Great for full-body cinematic shots: walking, environment scenes, slow-motion action."
+            "Upload a scene photo and describe the motion — AI animates it into a cinematic video.\n\n"
+            "Great for full-body cinematic shots: walking, environment scenes, action."
         )
 
         with gr.Row():
@@ -348,10 +357,10 @@ with gr.Blocks(title="Reel Generator") as demo:
                     sources=["upload"],
                 )
                 sv_prompt = gr.Textbox(
-                    label="Motion Prompts (one per line = one per 5s chunk)",
+                    label="Motion Prompts (one per line = one per chunk)",
                     placeholder="woman steps out of luxury infinity pool, wet hair, golden hour\nwalks confidently toward camera, slow motion\nsits at poolside, looks into distance, cinematic",
                     lines=6,
-                    info="Each line drives one 5s chunk. If fewer lines than chunks, the last line repeats.",
+                    info="Each line drives one chunk (Wan 2.2: 5s/chunk, SkyReels V1: 4s/chunk). Last line repeats if fewer lines than chunks.",
                 )
                 sv_music = gr.Audio(
                     label="Background Music (optional)",
@@ -368,6 +377,12 @@ with gr.Blocks(title="Reel Generator") as demo:
                     label="Memory Mode",
                     info="None: fastest, full quality  |  Offload: lower VRAM  |  Low VRAM: slowest",
                 )
+                sv_model = gr.Radio(
+                    choices=["Wan 2.2", "SkyReels V1"],
+                    value="Wan 2.2",
+                    label="Model",
+                    info="Wan 2.2: cinematic scenes, 5s chunks  |  SkyReels V1: human-centric, 4s chunks, 24fps",
+                )
                 sv_generate_btn = gr.Button("Generate Scene Video", variant="primary")
 
             with gr.Column():
@@ -376,7 +391,7 @@ with gr.Blocks(title="Reel Generator") as demo:
 
         sv_generate_btn.click(
             fn=generate_scene_video,
-            inputs=[sv_image, sv_prompt, sv_music, sv_duration, sv_vram_mode],
+            inputs=[sv_image, sv_prompt, sv_music, sv_duration, sv_vram_mode, sv_model],
             outputs=[sv_video_out, sv_status_out],
         )
 

@@ -116,7 +116,16 @@ export WAN_DIR=/workspace/Wan2.2
 export WAN_MODEL=/workspace/Wan2.2-I2V-A14B
 ```
 
-> Required for the "Scene Video (Wan I2V)" tab. Wan must be downloaded first — see runpod_setup.md if not yet done.
+> Required for the Scene Video tab (Wan 2.2 option). Wan must be downloaded first — see runpod_setup.md if not yet done.
+
+### Step 3e — Set SkyReels V1 I2V paths (optional — for Scene Video → SkyReels V1 option)
+
+```bash
+export SKYREELS_V1_DIR=/workspace/SkyReels-V1
+export SKYREELS_V1_MODEL=Skywork/SkyReels-V1-Hunyuan-I2V
+```
+
+> Only needed if you want to use the "SkyReels V1" option in the Scene Video tab. Model auto-downloads from HuggingFace on first run (~24GB) if not pre-downloaded.
 
 ### Step 4 — Start the app
 

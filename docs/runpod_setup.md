@@ -80,6 +80,15 @@ pip install -r requirements.txt
 
 # Download Wan 2.2 I2V-A14B weights (~54GB — takes ~10-15 min)
 huggingface-cli download Wan-AI/Wan2.2-I2V-A14B --local-dir /workspace/Wan2.2-I2V-A14B
+
+# SkyReels V1 I2V (optional — for Scene Video tab → SkyReels V1 option)
+cd /workspace
+git clone https://github.com/SkyworkAI/SkyReels-V1.git
+cd SkyReels-V1
+pip install -r requirements.txt
+# Model (~24GB) auto-downloads from HuggingFace on first run
+# Or pre-download:
+# hf download Skywork/SkyReels-V1-Hunyuan-I2V --local-dir /workspace/SkyReels-V1-Hunyuan-I2V
 ```
 
 ---
