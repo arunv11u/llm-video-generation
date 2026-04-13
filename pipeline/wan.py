@@ -38,7 +38,9 @@ def generate(image: str, prompt: str, out_path: str,
         print(f"ERROR: Wan not found at {WAN_DIR}", file=sys.stderr)
         sys.exit(1)
 
-    frame_num = duration * WAN_FPS
+    # Wan requires frame_num to be 4n+1 (e.g. 81, 97, 121...)
+    raw_frames = duration * WAN_FPS
+    frame_num = round((raw_frames - 1) / 4) * 4 + 1
 
     cmd = [
         sys.executable, script,
