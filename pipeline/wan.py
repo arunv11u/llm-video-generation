@@ -151,7 +151,7 @@ def _crossfade_videos(video_paths: list, crossfade_dur: float, target_duration: 
 
 
 def generate_chunked(
-    image: str, prompt: str, out_path: str,
+    image: str, prompts: list, out_path: str,
     total_duration: int = 15,
     chunk_duration: int = CHUNK_DURATION,
     crossfade: float = CROSSFADE,
@@ -160,6 +160,9 @@ def generate_chunked(
     """
     Generate a long scene video by chaining 5s Wan I2V chunks.
     Each chunk uses the last frame of the previous chunk as its starting image.
+
+    prompts: list of prompts, one per chunk. If fewer than n_chunks, the last
+             prompt repeats for remaining chunks.
     """
     ts = int(time.time())
     chunk_paths = []
@@ -178,8 +181,10 @@ def generate_chunked(
             chunk_path = f"/tmp/wan_chunk_{ts}_{i}.mp4"
             chunk_paths.append(chunk_path)
 
-            print(f"\n[wan-chunked] chunk {i+1}/{n_chunks}")
-            generate(current_image, prompt, chunk_path,
+            # Use prompts[i] if available, otherwise repeat the last prompt
+            chunk_prompt = prompts[i] if i < len(prompts) else prompts[-1]
+            print(f"\n[wan-chunked] chunk {i+1}/{n_chunks} | prompt: {chunk_prompt[:60]}...")
+            generate(current_image, chunk_prompt, chunk_path,
                      duration=chunk_duration, vram_mode=vram_mode)
 
             if i < n_chunks - 1:

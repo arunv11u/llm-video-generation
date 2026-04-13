@@ -95,7 +95,10 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
     from pipeline.wan import generate as wan_generate, generate_chunked as wan_generate_chunked
     from pipeline.polish import polish
 
-    prompt = prompt.strip() if prompt else ""
+    # Parse prompts — one per line, one per 5s chunk
+    prompts = [p.strip() for p in (prompt or "").split("\n") if p.strip()]
+    if not prompts:
+        return None, "Please enter at least one prompt."
     music_path = music_path if music_path else None
     vram = vram_mode.lower().replace(" ", "_")
 
@@ -106,10 +109,10 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
 
     try:
         if duration > 5:
-            wan_generate_chunked(image_path, prompt, raw_path,
+            wan_generate_chunked(image_path, prompts, raw_path,
                                  total_duration=duration, vram_mode=vram)
         else:
-            wan_generate(image_path, prompt, raw_path,
+            wan_generate(image_path, prompts[0], raw_path,
                          duration=duration, vram_mode=vram)
 
         if music_path:
@@ -345,9 +348,10 @@ with gr.Blocks(title="Reel Generator") as demo:
                     sources=["upload"],
                 )
                 sv_prompt = gr.Textbox(
-                    label="Motion Prompt",
-                    placeholder="woman steps out of luxury infinity pool, wet hair, confident walk, golden hour, cinematic slow motion",
-                    lines=3,
+                    label="Motion Prompts (one per line = one per 5s chunk)",
+                    placeholder="woman steps out of luxury infinity pool, wet hair, golden hour\nwalks confidently toward camera, slow motion\nsits at poolside, looks into distance, cinematic",
+                    lines=6,
+                    info="Each line drives one 5s chunk. If fewer lines than chunks, the last line repeats.",
                 )
                 sv_music = gr.Audio(
                     label="Background Music (optional)",
