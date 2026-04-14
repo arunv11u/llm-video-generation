@@ -89,7 +89,7 @@ def upload_reference(image_path: str):
 # ── Scene Video tab ───────────────────────────────────────────────────────────
 
 def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str, model: str = "Wan 2.2",
-                         sr_addnoise: int = 0, sr_overlap: int = 33, sr_base_frames: int = 97):
+                         sr_addnoise: int = 0, sr_overlap: int = 33, sr_base_frames: int = 97, sr_guidance: float = 5.0):
     if not image_path:
         return None, "Please upload a starting scene image."
 
@@ -115,7 +115,8 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
                         duration=duration, vram_mode=vram,
                         addnoise_condition=int(sr_addnoise),
                         overlap_history=int(sr_overlap),
-                        base_num_frames=int(sr_base_frames))
+                        base_num_frames=int(sr_base_frames),
+                        guidance_scale=float(sr_guidance))
         else:  # Wan 2.2 (default)
             from pipeline.wan import generate as wan_generate, generate_chunked as wan_generate_chunked
             if duration > 5 and vram == "none":
@@ -400,6 +401,11 @@ with gr.Blocks(title="Reel Generator") as demo:
                         label="base_num_frames",
                         info="Frames per chunk before extension. Higher = fewer chunks = less drift, more VRAM. Raise if Memory Mode = None.",
                     )
+                    sv_sr_guidance = gr.Slider(
+                        minimum=1.0, maximum=15.0, step=0.5, value=5.0,
+                        label="guidance_scale",
+                        info="How strongly the model follows image/text conditioning. 5.0 = default. 8–9 = stronger identity preservation but may over-saturate colors.",
+                    )
                 sv_generate_btn = gr.Button("Generate Scene Video", variant="primary")
 
             with gr.Column():
@@ -409,7 +415,7 @@ with gr.Blocks(title="Reel Generator") as demo:
         sv_generate_btn.click(
             fn=generate_scene_video,
             inputs=[sv_image, sv_prompt, sv_music, sv_duration, sv_vram_mode, sv_model,
-                    sv_sr_addnoise, sv_sr_overlap, sv_sr_base_frames],
+                    sv_sr_addnoise, sv_sr_overlap, sv_sr_base_frames, sv_sr_guidance],
             outputs=[sv_video_out, sv_status_out],
         )
 

@@ -29,7 +29,8 @@ def generate(image: str, prompt: str, out_path: str,
              duration: int = 15, vram_mode: str = "none",
              addnoise_condition: int = 0,
              overlap_history: int = 33,
-             base_num_frames: int = 97) -> None:
+             base_num_frames: int = 97,
+             guidance_scale: float = 5.0) -> None:
     """
     Run SkyReels V2 Diffusion Forcing I2V to produce a long scene video.
 
@@ -64,7 +65,7 @@ def generate(image: str, prompt: str, out_path: str,
         "--addnoise_condition", str(addnoise_condition),
         "--image",              image,
         "--prompt",             prompt,
-        "--guidance_scale",     "5.0",
+        "--guidance_scale",     str(guidance_scale),
         "--shift",              "3.0",
         "--fps",                str(FPS),
         "--use_ret_steps",
