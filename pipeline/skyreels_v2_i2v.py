@@ -16,7 +16,7 @@ import sys
 import time
 
 SKYREELS_V2_DIR   = os.environ.get("SKYREELS_V2_DIR",   "/workspace/SkyReels-V2")
-SKYREELS_V2_MODEL = os.environ.get("SKYREELS_V2_MODEL", "Skywork/SkyReels-V2-I2V-14B-540P")
+SKYREELS_V2_MODEL = os.environ.get("SKYREELS_V2_MODEL", "Skywork/SkyReels-V2-DF-14B-540P")
 
 FPS = 24
 

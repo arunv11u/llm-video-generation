@@ -122,7 +122,7 @@ export WAN_MODEL=/workspace/Wan2.2-I2V-A14B
 
 ```bash
 export SKYREELS_V2_DIR=/workspace/SkyReels-V2
-export SKYREELS_V2_MODEL=Skywork/SkyReels-V2-I2V-14B-540P
+export SKYREELS_V2_MODEL=Skywork/SkyReels-V2-DF-14B-540P
 ```
 
 > Only needed if you want to use the "SkyReels V2" option in the Scene Video tab. Model auto-downloads from HuggingFace on first run (~30-35GB). If pre-downloaded, set SKYREELS_V2_MODEL to the local path instead.
