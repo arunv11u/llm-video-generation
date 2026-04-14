@@ -5,7 +5,7 @@
 ### Step 1 — Install dependencies (required after every restart)
 
 ```bash
-pip install gradio elevenlabs imageio imageio-ffmpeg wget easydict diffusers==0.34.0 transformers==4.44.2 accelerate==1.8.1 moviepy==2.2.1 omegaconf pyloudnorm librosa kornia ftfy torchao==0.10.0 opencv-python av sqlalchemy openai decord peft dashscope && grep -v "flash_attn" /workspace/SkyReels-V3/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5 && grep -v "flash_attn" /workspace/Wan2.2/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5 && grep -v "flash_attn" /workspace/SkyReels-V2/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5
+pip install gradio elevenlabs imageio imageio-ffmpeg wget easydict diffusers==0.34.0 transformers==4.44.2 accelerate==1.8.1 moviepy==1.0.3 omegaconf pyloudnorm librosa kornia ftfy torchao==0.10.0 opencv-python av sqlalchemy openai decord peft dashscope && grep -v "flash_attn" /workspace/SkyReels-V3/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5 && grep -v "flash_attn" /workspace/Wan2.2/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5
 pip install flash_attn --no-build-isolation
 ```
 
