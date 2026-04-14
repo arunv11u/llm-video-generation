@@ -26,15 +26,24 @@ FRAME_MAP = {5: 97, 10: 257, 15: 377, 20: 497, 25: 617, 30: 737}
 
 
 def generate(image: str, prompt: str, out_path: str,
-             duration: int = 15, vram_mode: str = "none") -> None:
+             duration: int = 15, vram_mode: str = "none",
+             addnoise_condition: int = 0,
+             overlap_history: int = 33,
+             base_num_frames: int = 97) -> None:
     """
     Run SkyReels V2 Diffusion Forcing I2V to produce a long scene video.
 
-    image:      path to starting scene image (PNG or JPG)
-    prompt:     motion/scene prompt (all chunk prompts pre-joined by caller)
-    out_path:   where to write the final MP4
-    duration:   video length in seconds (5–30)
-    vram_mode:  "none" (default), "offload", or "low_vram"
+    image:              path to starting scene image (PNG or JPG)
+    prompt:             motion/scene prompt (all chunk prompts pre-joined by caller)
+    out_path:           where to write the final MP4
+    duration:           video length in seconds (5–30)
+    vram_mode:          "none" (default), "offload", or "low_vram"
+    addnoise_condition: noise re-injected into overlap frames (0 = max identity
+                        preservation, 20 = smoother seams but more drift)
+    overlap_history:    frames of context carried between chunks (higher = less
+                        face drift, slightly more VRAM/time)
+    base_num_frames:    frames per chunk before extension (higher = fewer chunks
+                        = less drift, more VRAM)
     """
     script = os.path.join(SKYREELS_V2_DIR, "generate_video_df.py")
     if not os.path.exists(script):
@@ -49,10 +58,10 @@ def generate(image: str, prompt: str, out_path: str,
         "--model_id",           SKYREELS_V2_MODEL,
         "--resolution",         "540P",
         "--num_frames",         str(frame_count),
-        "--base_num_frames",    "97",
-        "--overlap_history",    "17",
+        "--base_num_frames",    str(base_num_frames),
+        "--overlap_history",    str(overlap_history),
         "--ar_step",            "0",
-        "--addnoise_condition", "20",
+        "--addnoise_condition", str(addnoise_condition),
         "--image",              image,
         "--prompt",             prompt,
         "--guidance_scale",     "5.0",

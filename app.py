@@ -88,7 +88,8 @@ def upload_reference(image_path: str):
 
 # ── Scene Video tab ───────────────────────────────────────────────────────────
 
-def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str, model: str = "Wan 2.2"):
+def generate_scene_video(image_path: str, prompt: str, music_path: str, duration: int, vram_mode: str, model: str = "Wan 2.2",
+                         sr_addnoise: int = 0, sr_overlap: int = 33, sr_base_frames: int = 97):
     if not image_path:
         return None, "Please upload a starting scene image."
 
@@ -111,7 +112,10 @@ def generate_scene_video(image_path: str, prompt: str, music_path: str, duration
             from pipeline.skyreels_v2_i2v import generate as sr_generate
             combined_prompt = ". ".join(prompts)
             sr_generate(image_path, combined_prompt, raw_path,
-                        duration=duration, vram_mode=vram)
+                        duration=duration, vram_mode=vram,
+                        addnoise_condition=int(sr_addnoise),
+                        overlap_history=int(sr_overlap),
+                        base_num_frames=int(sr_base_frames))
         else:  # Wan 2.2 (default)
             from pipeline.wan import generate as wan_generate, generate_chunked as wan_generate_chunked
             if duration > 5 and vram == "none":
@@ -380,6 +384,22 @@ with gr.Blocks(title="Reel Generator") as demo:
                     label="Model",
                     info="Wan 2.2: cinematic scenes, 5s chunks  |  SkyReels V2: smooth long video, no chunk transitions, 24fps",
                 )
+                with gr.Accordion("SkyReels V2 Advanced (identity/drift tuning)", open=False):
+                    sv_sr_addnoise = gr.Slider(
+                        minimum=0, maximum=40, step=5, value=0,
+                        label="addnoise_condition",
+                        info="Noise injected into overlap frames. 0 = max identity preservation (recommended if face drifts). 20 = smoother seams but more drift.",
+                    )
+                    sv_sr_overlap = gr.Slider(
+                        minimum=17, maximum=65, step=8, value=33,
+                        label="overlap_history",
+                        info="Frames carried between chunks. Higher = less face drift, slightly more VRAM/time. Try 33 → 49 if drift persists.",
+                    )
+                    sv_sr_base_frames = gr.Slider(
+                        minimum=97, maximum=161, step=8, value=97,
+                        label="base_num_frames",
+                        info="Frames per chunk before extension. Higher = fewer chunks = less drift, more VRAM. Raise if Memory Mode = None.",
+                    )
                 sv_generate_btn = gr.Button("Generate Scene Video", variant="primary")
 
             with gr.Column():
@@ -388,7 +408,8 @@ with gr.Blocks(title="Reel Generator") as demo:
 
         sv_generate_btn.click(
             fn=generate_scene_video,
-            inputs=[sv_image, sv_prompt, sv_music, sv_duration, sv_vram_mode, sv_model],
+            inputs=[sv_image, sv_prompt, sv_music, sv_duration, sv_vram_mode, sv_model,
+                    sv_sr_addnoise, sv_sr_overlap, sv_sr_base_frames],
             outputs=[sv_video_out, sv_status_out],
         )
 
