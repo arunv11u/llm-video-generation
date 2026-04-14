@@ -5,7 +5,7 @@
 ### Step 1 — Install dependencies (required after every restart)
 
 ```bash
-pip install gradio elevenlabs imageio imageio-ffmpeg wget easydict diffusers==0.34.0 transformers==4.44.2 accelerate==1.8.1 moviepy==2.2.1 omegaconf pyloudnorm librosa kornia ftfy torchao==0.10.0 opencv-python av sqlalchemy openai decord peft dashscope && grep -v "flash_attn" /workspace/SkyReels-V3/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5 && grep -v "flash_attn" /workspace/Wan2.2/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5
+pip install gradio elevenlabs imageio imageio-ffmpeg wget easydict diffusers==0.34.0 transformers==4.44.2 accelerate==1.8.1 moviepy==2.2.1 omegaconf pyloudnorm librosa kornia ftfy torchao==0.10.0 opencv-python av sqlalchemy openai decord peft dashscope && grep -v "flash_attn" /workspace/SkyReels-V3/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5 && grep -v "flash_attn" /workspace/Wan2.2/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5 && grep -v "flash_attn" /workspace/SkyReels-V2/requirements.txt | pip install -r /dev/stdin 2>&1 | tail -5
 pip install flash_attn --no-build-isolation
 ```
 
@@ -118,14 +118,14 @@ export WAN_MODEL=/workspace/Wan2.2-I2V-A14B
 
 > Required for the Scene Video tab (Wan 2.2 option). Wan must be downloaded first — see runpod_setup.md if not yet done.
 
-### Step 3e — Set SkyReels V1 I2V paths (optional — for Scene Video → SkyReels V1 option)
+### Step 3e — Set SkyReels V2 I2V paths (optional — for Scene Video → SkyReels V2 option)
 
 ```bash
-export SKYREELS_V1_DIR=/workspace/SkyReels-V1
-export SKYREELS_V1_MODEL=Skywork/SkyReels-V1-Hunyuan-I2V
+export SKYREELS_V2_DIR=/workspace/SkyReels-V2
+export SKYREELS_V2_MODEL=Skywork/SkyReels-V2-I2V-14B-540P
 ```
 
-> Only needed if you want to use the "SkyReels V1" option in the Scene Video tab. Model auto-downloads from HuggingFace on first run (~24GB) if not pre-downloaded.
+> Only needed if you want to use the "SkyReels V2" option in the Scene Video tab. Model auto-downloads from HuggingFace on first run.
 
 ### Step 4 — Start the app
 
