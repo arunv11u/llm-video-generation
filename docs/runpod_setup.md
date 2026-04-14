@@ -94,7 +94,20 @@ pip install -r requirements.txt
 
 ---
 
-## 7. Install project dependencies
+## 7. Install FaceFusion (optional — for face identity correction)
+
+```bash
+cd /workspace
+git clone https://github.com/facefusion/facefusion.git
+cd facefusion
+python install.py --onnxruntime cuda
+```
+
+FaceFusion downloads its models (~500MB) automatically on first run. Once installed, enable **"Fix face identity"** in the SkyReels V2 Advanced panel to correct face drift across the full video.
+
+---
+
+## 8. Install project dependencies
 
 ```bash
 cd /workspace/LLM-Video
