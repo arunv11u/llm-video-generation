@@ -86,7 +86,10 @@ cd /workspace
 git clone https://github.com/SkyworkAI/SkyReels-V2.git
 cd SkyReels-V2
 pip install -r requirements.txt
-# Model auto-downloads from HuggingFace on first run (~14B I2V model)
+# Model (~30-35GB) auto-downloads from HuggingFace on first run
+# Or pre-download to avoid delay on first generation:
+# hf download Skywork/SkyReels-V2-I2V-14B-540P --local-dir /workspace/SkyReels-V2-I2V-14B-540P
+# If pre-downloaded, set SKYREELS_V2_MODEL=/workspace/SkyReels-V2-I2V-14B-540P in startup.md
 ```
 
 ---
