@@ -66,7 +66,7 @@ def generate(image: str, prompt: str, out_path: str,
         "--image",              image,
         "--prompt",             prompt,
         "--guidance_scale",     str(guidance_scale),
-        "--shift",              "3.0",
+        "--shift",              "5.0",
         "--fps",                str(FPS),
         "--use_ret_steps",
     ]
